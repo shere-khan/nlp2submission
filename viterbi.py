@@ -1,4 +1,4 @@
-import sys, sqlite3
+import sys, sqlite3, read
 import graph
 import queries
 
@@ -37,7 +37,10 @@ def initializegraph(cursor, sent, exec_columns):
 
         for wtag in wtags:
             wtag = wtag[0]
-            likelihood = queries.get_word_likelihood(cursor, w, wtag)
+            if isword:
+                likelihood = queries.get_word_likelihood(cursor, w, wtag)
+            else:
+                likelihood = 1
             v = g.insert_vertex(WordVertex(w, wtag, likelihood))
             nextnodes.append(v)
 
@@ -227,29 +230,30 @@ if __name__ == '__main__':
     print()
     print('Viterbi Algorithm HMM Tagger by Justin Barry', end='\n\n')
 
-    test_file = sys.argv[1]
-    emissions_flag = sys.argv[2]
+    read.readdata()
+    test_file = sys.argv[2]
+    emissions_flag = sys.argv[3]
 
     conn = sqlite3.connect('corpus.db')
     curs = conn.cursor()
 
-    # print_tags_observed(curs)
-    # print_tag_dist(curs)
+    print_tags_observed(curs)
+    print_tag_dist(curs)
     if emissions_flag == 'True':
         print_emission_probs(curs)
     print_transition_probs(curs)
-    # print('Corpus Features: ', end='\n\n')
-    # print_tag_count(curs)
-    # print_lexicals(curs)
-    # print_num_sentences(curs)
+    print('Corpus Features: ', end='\n\n')
+    print_tag_count(curs)
+    print_lexicals(curs)
+    print_num_sentences(curs)
 
-    # with open(test_file) as f:
-    #     for line in f:
-    #         print()
-    #
-    #         line = line.lower()
-    #         sent = line.split()
-    #         print_tokens_found_in_corpus(curs, sent)
-    #         print()
-    #
-    #         find_tagging(sent)
+    with open(test_file) as f:
+        for line in f:
+            print()
+
+            line = line.lower()
+            sent = line.split()
+            print_tokens_found_in_corpus(curs, sent)
+            print()
+
+            find_tagging(sent)
