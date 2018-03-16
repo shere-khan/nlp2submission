@@ -567,7 +567,7 @@ def viterbi(g, sent, exec_columns):
             prob = res[1]
             prev = edges[0]
             cur = edges[1]
-            print('({0} {1:.6f}, {2})'.format(cur, prob / totprob, prev), end=' ')
+            print('{0} ({1:.6f}, {2})'.format(cur, prob / totprob, prev), end=' ')
             sys.stdout.flush()
 
         print()
