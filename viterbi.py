@@ -421,48 +421,6 @@ def find_tagging(sentence):
     viterbi(g, sentence, exec_columns)
     print_best_path(exec_columns)
 
-def viterbi(g, sent, exec_columns):
-    class Path:
-        def __init__(self, edge, prob):
-            self.edge = edge
-            self.prob = prob
-
-    for word, col in zip(sent, exec_columns):
-        print('{0} : '.format(word), end=' ')
-        resultlist = list()
-        for v in col:
-            edges_in = g.incident_edges(v, outgoing=False)
-            probs = list()
-
-            # select best transition probability out of all incoming edges to v
-            # and stores best path (prev) and prob (maxprob) in v
-            for e in edges_in:
-                prev = e.opposite(v)
-                possible_best = prev.element.best_prob_so_far * e.element \
-                                * v.element.likelihood
-                probs.append(Path(e, possible_best))
-
-            best_path = max(probs, key=lambda x: x.prob)
-            v.element.best_prob_so_far = best_path.prob
-            v.element.prev = best_path.edge.opposite(v)
-
-            resultlist.append(((best_path.edge.origin.element.tag, v.element.tag),
-                               best_path.prob))
-        totprob = 0
-        for res in resultlist:
-            prob = res[1]
-            totprob += prob
-
-        for res in resultlist:
-            edges = res[0]
-            prob = res[1]
-            prev = edges[0]
-            cur = edges[1]
-            print('({0:.6f}, {1})'.format(prob / totprob, prev), end=' ')
-            sys.stdout.flush()
-
-        print()
-
 def print_emission_probs(curs):
     words = get_distinct_words(curs)
     for w in words:
@@ -571,6 +529,49 @@ def print_bigrams(curs):
             tot_bigrams += len(bigrams)
 
     print('Total # bigrams : {0}'.format(tot_bigrams))
+
+def viterbi(g, sent, exec_columns):
+    class Path:
+        def __init__(self, edge, prob):
+            self.edge = edge
+            self.prob = prob
+
+    for word, col in zip(sent, exec_columns):
+        print('{0} : '.format(word), end=' ')
+        resultlist = list()
+        for v in col:
+            edges_in = g.incident_edges(v, outgoing=False)
+            probs = list()
+
+            # select best transition probability out of all incoming edges to v
+            # and stores best path (prev) and prob (maxprob) in v
+            for e in edges_in:
+                prev = e.opposite(v)
+                possible_best = prev.element.best_prob_so_far * e.element \
+                                * v.element.likelihood
+                probs.append(Path(e, possible_best))
+
+            best_path = max(probs, key=lambda x: x.prob)
+            v.element.best_prob_so_far = best_path.prob
+            v.element.prev = best_path.edge.opposite(v)
+
+            resultlist.append(((best_path.edge.origin.element.tag, v.element.tag),
+                               best_path.prob))
+        totprob = 0
+        for res in resultlist:
+            prob = res[1]
+            totprob += prob
+
+        for res in resultlist:
+            edges = res[0]
+            prob = res[1]
+            prev = edges[0]
+            cur = edges[1]
+            print('({0} {1:.6f}, {2})'.format(cur, prob / totprob, prev), end=' ')
+            sys.stdout.flush()
+
+        print()
+
 
 def readdata():
     file_name = sys.argv[1]
